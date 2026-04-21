@@ -65,7 +65,7 @@ export function CreateForm() {
     },
   })
 
-  const availableTags = ["Urgente", "Revisión", "Aprobado", "Pendiente", "Archivado"]
+  const availableTags = ["Urgente", "Cerrado", "Revisión"]
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>

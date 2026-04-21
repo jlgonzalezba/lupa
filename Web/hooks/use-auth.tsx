@@ -91,10 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password)
-    
-    const user = auth.currentUser
-    if (user) {
+    try {
+      const credential = await signInWithEmailAndPassword(auth, email, password)
+      if (!credential.user) return
+      
+      const user = credential.user
       const userDocRef = doc(db, 'users', user.uid)
       const userDoc = await getDoc(userDocRef)
       
@@ -115,6 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRole(newRole)
         setMustChangePassword(isAdmin ? false : true)
       }
+    } catch (error: any) {
+      console.error('Error signIn:', error)
+      throw new Error(error.code === 'auth/invalid-credential' 
+        ? 'Email o contraseña incorrectos'
+        : 'Error al iniciar sesión')
     }
   }
 
@@ -179,8 +185,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('No tienes permisos para eliminar usuarios')
     }
 
-    const userDocRef = doc(db, 'users', uid)
-    await deleteDoc(userDocRef)
+    const response = await fetch(`/api/users/${uid}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deletedByUid: user.uid }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al eliminar usuario')
+    }
   }
 
   const changePassword = async (newPassword: string) => {
