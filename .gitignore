@@ -15,7 +15,7 @@ Web/out/
 *.json
 !vercel.json
 !Web/package.json
-!/package.json
+!package.json
 
 # Logs
 *.log
