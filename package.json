@@ -1,0 +1,12 @@
+{
+  "name": "lupa",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd Web && npm run dev",
+    "build": "cd Web && npm run build",
+    "start": "cd Web && npm start"
+  }
+}
+
+# sdfsdafasd
