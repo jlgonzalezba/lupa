@@ -8,24 +8,33 @@ import { useAuth } from '@/hooks/use-auth'
 import { FirestoreService } from '@/lib/firestore'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { toast } from "sonner"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, Calendar, Eye, Pencil, Trash2, FileText, Loader2, Download } from 'lucide-react'
+import { Search, Calendar, Eye, Trash2, FileText, Loader2, Download } from 'lucide-react'
 
 interface Report {
   id: string
@@ -38,6 +47,7 @@ interface Report {
   status: string
   userId: string
   userEmail: string
+  notes?: string
   createdAt?: { toDate?: () => Date }
 }
 
@@ -58,6 +68,8 @@ export default function AnaliticasPage() {
   const [dateTo, setDateTo] = useState('')
   const [category, setCategory] = useState('all')
   const [filteredReports, setFilteredReports] = useState<Report[]>([])
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingReport, setViewingReport] = useState<Report | null>(null)
 
   useEffect(() => {
     if (hydrated && isAdmin) {
@@ -85,7 +97,7 @@ export default function AnaliticasPage() {
 
     if (searchUser) {
       const query = searchUser.toLowerCase()
-      filtered = filtered.filter(r => 
+      filtered = filtered.filter(r =>
         r.userEmail?.toLowerCase().includes(query)
       )
     }
@@ -140,7 +152,8 @@ export default function AnaliticasPage() {
       ...csvData.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
     ].join('\n')
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const bom = new Uint8Array([0xEF, 0xBB, 0xBF])
+    const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
     const dateStr = new Date().toISOString().split('T')[0]
@@ -171,11 +184,46 @@ export default function AnaliticasPage() {
     return labels[cat] || cat
   }
 
+  const getEventTypeLabel = (eventType: string) => {
+    const labels: Record<string, string> = {
+      'acto-inseguro': 'Acto inseguro',
+      'condicion-insegura': 'Condición insegura',
+      'oportunidad-mejora': 'Oportunidad de mejora',
+      'felicitaciones': 'Felicitaciones / Refuerzo positivo',
+    }
+    return labels[eventType] || eventType
+  }
+
   const getStatusBadge = (status: string) => {
     if (status === 'published') {
       return <Badge className="bg-green-500">Publicado</Badge>
     }
     return <Badge variant="secondary">Borrador</Badge>
+  }
+
+  const handleViewReport = (id: string) => {
+    const report = reports.find(r => r.id === id)
+    if (report) {
+      setViewingReport(report)
+    }
+  }
+
+  const handleDeleteReport = async (id: string) => {
+    if (window && window.confirm && !window.confirm('¿Está seguro de eliminar este reporte? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    setDeletingId(id)
+    try {
+      await FirestoreService.delete('records', id)
+      await loadAllReports()
+      toast.success('Registro eliminado exitosamente')
+    } catch (error) {
+      console.error('Error eliminando registro:', error)
+      toast.error('Error al eliminar el registro')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   if (!hydrated) {
@@ -215,8 +263,8 @@ export default function AnaliticasPage() {
                 <h1 className="text-2xl font-bold text-foreground">Analíticas</h1>
                 <p className="text-muted-foreground">Visualiza y gestiona todos los reportes del sistema</p>
               </div>
-              <Button 
-                onClick={exportToCSV} 
+              <Button
+                onClick={exportToCSV}
                 disabled={filteredReports.length === 0}
                 className="gap-2"
               >
@@ -237,7 +285,7 @@ export default function AnaliticasPage() {
                       className="pl-10"
                     />
                   </div>
-                  
+
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -270,8 +318,8 @@ export default function AnaliticasPage() {
                     </Select>
 
                     {(searchUser || dateFrom || dateTo || category !== 'all') && (
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
                           setSearchUser('')
@@ -323,14 +371,27 @@ export default function AnaliticasPage() {
                           <TableCell className="text-muted-foreground">{report.userEmail}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleViewReport(report.id)}
+                                disabled={deletingId === report.id}
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteReport(report.id)}
+                                disabled={deletingId === report.id}
+                              >
+                                {deletingId === report.id ? (
+                                  <Loader2 className="h-4 w-4" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
                               </Button>
                             </div>
                           </TableCell>
@@ -347,6 +408,80 @@ export default function AnaliticasPage() {
           </main>
         </ScrollArea>
       </div>
+
+      <Dialog open={!!viewingReport} onOpenChange={(open) => { if (!open) setViewingReport(null); }}>
+        <DialogContent className="w-[90vw] max-w-[600px]">
+          <DialogHeader className="space-y-4">
+            <DialogTitle>Detalles del Reporte</DialogTitle>
+            <DialogDescription>
+              Visualiza la información completa del reporte seleccionado
+            </DialogDescription>
+          </DialogHeader>
+          <DialogContent className="space-y-6">
+            {viewingReport && (
+              <>
+                <div>
+                  <h3 className="text-lg font-medium text-foreground">{viewingReport.title || 'Sin título'}</h3>
+                  <p className="text-muted-foreground">{viewingReport.date || 'Fecha no especificada'}</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <span className="font-medium">Ubicación:</span>
+                    <span className="text-muted-foreground ml-2">{getCategoryLabel(viewingReport.category)}</span>
+                  </div>
+
+                  <div>
+                    <span className="font-medium">Tipo de evento:</span>
+                    <span className="text-muted-foreground ml-2">{getEventTypeLabel(viewingReport.eventType)}</span>
+                  </div>
+
+                  <div>
+                    <span className="font-medium">Estado:</span>
+                    <span className="text-muted-foreground ml-2">
+                      {viewingReport.status === 'published' ? 'Publicado' : 'Borrador'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="font-medium">Usuario:</span>
+                    <span className="text-muted-foreground ml-2">{viewingReport.userEmail}</span>
+                  </div>
+
+                  <div>
+                    <span className="font-medium">Fecha de creación:</span>
+                    <span className="text-muted-foreground ml-2">
+                      {viewingReport.createdAt?.toDate ? viewingReport.createdAt.toDate().toLocaleDateString('es-ES') : 'N/A'}
+                    </span>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <span className="font-medium">Descripción:</span>
+                    <p className="mt-2 text-muted-foreground">{viewingReport.description || 'Sin descripción'}</p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <span className="font-medium">Acción tomada:</span>
+                    <p className="mt-2 text-muted-foreground">{viewingReport.actionTaken || 'Sin acción tomada'}</p>
+                  </div>
+
+                  {viewingReport.notes && viewingReport.notes.trim() !== '' && (
+                    <div className="border-t pt-4">
+                      <span className="font-medium">Notas internas:</span>
+                      <p className="mt-2 text-muted-foreground">{viewingReport.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </DialogContent>
+          <DialogFooter className="flex justify-end pt-4">
+            <Button variant="ghost" onClick={() => setViewingReport(null)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
