@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../theme/app_theme.dart';
 import '../providers/auth_provider.dart' as auth;
 
-const String API_BASE_URL = 'https://lupa-puce.vercel.app';
+const String API_BASE_URL = 'https://us-central1-innergy-a55ba.cloudfunctions.net';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -110,7 +110,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   final idToken = await currentUser.getIdToken();
 
                   final response = await http.post(
-                    Uri.parse('$API_BASE_URL/api/users'),
+                    Uri.parse('$API_BASE_URL/users'),
                     headers: {
                       'Content-Type': 'application/json',
                       'Authorization': 'Bearer $idToken',
@@ -174,11 +174,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       final currentUser = context.read<auth.AuthProvider>().currentUser;
       if (currentUser == null) return;
 
-      final response = await http.delete(
-        Uri.parse('$API_BASE_URL/api/users/$uid'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'deletedByUid': currentUser.uid}),
-      );
+       final response = await http.delete(
+          Uri.parse('$API_BASE_URL/users?targetUid=$uid&deletedByUid=${currentUser.uid}'),
+          headers: {'Content-Type': 'application/json'},
+        );
 
       if (response.statusCode != 200) {
         final error = jsonDecode(response.body);
