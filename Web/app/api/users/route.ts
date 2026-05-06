@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       uid: userRecord.uid,
       email: userRecord.email,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API /users] Error creating user:', error)
     
     if (error.code === 'auth/email-already-exists') {

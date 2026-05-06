@@ -53,7 +53,7 @@ function initializeFirebaseAdmin() {
     adminDb = getAdminFirestore(app)
     
     console.log('[Firebase Admin] SUCCESS - adminAuth:', !!adminAuth, 'adminDb:', !!adminDb)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Firebase Admin] FAILED:', error.message)
     console.error('[Firebase Admin] Error code:', error.code)
     initializationError = error.message

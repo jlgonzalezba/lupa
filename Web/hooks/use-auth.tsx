@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRole(newRole)
         setMustChangePassword(isAdmin ? false : true)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error signIn:', error)
       throw new Error(error.code === 'auth/invalid-credential' 
         ? 'Email o contraseña incorrectos'

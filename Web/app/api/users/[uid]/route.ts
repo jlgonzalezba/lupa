@@ -53,7 +53,7 @@ export async function DELETE(
     console.log('[API /users/[uid]] Deleted from Firestore:', targetUid)
 
     return NextResponse.json({ success: true, uid: targetUid })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API /users/[uid]] Error deleting user:', error)
     return NextResponse.json(
       { error: error.message || 'Error al eliminar usuario' },
