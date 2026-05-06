@@ -36,7 +36,7 @@ interface UserData {
 }
 
 export function UserManagement() {
-  const { isAdmin, deleteUser, user: currentUser } = useAuth()
+  const { isAdmin, deleteUser, createUserByAdmin, user: currentUser } = useAuth()
   const [users, setUsers] = useState<UserData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -65,44 +65,28 @@ export function UserManagement() {
     }
   }
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newUser.email || !newUser.password || !newUser.displayName) {
-      toast.error("Por favor completa todos los campos")
-      return
-    }
+   const handleCreateUser = async (e: React.FormEvent) => {
+     e.preventDefault()
+     if (!newUser.email || !newUser.password || !newUser.displayName) {
+       toast.error("Por favor completa todos los campos")
+       return
+     }
 
-    setIsCreating(true)
-    try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: newUser.email,
-          password: newUser.password,
-          displayName: newUser.displayName,
-          createdByUid: currentUser?.uid,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al crear usuario')
-      }
-
-      toast.success("Usuario creado exitosamente")
-      setIsDialogOpen(false)
-      setNewUser({ email: "", password: "", displayName: "" })
-      loadUsers()
-    } catch (error) {
-      console.error("Error creating user:", error)
-      const errorMessage = error instanceof Error ? error.message : "Error al crear usuario"
-      toast.error(errorMessage)
-    } finally {
-      setIsCreating(false)
-    }
-  }
+     setIsCreating(true)
+     try {
+       await createUserByAdmin(newUser.email, newUser.password, newUser.displayName)
+       
+       toast.success("Usuario creado exitosamente")
+       setIsDialogOpen(false)
+       setNewUser({ email: "", password: "", displayName: "" })
+       loadUsers()
+     } catch (error) {
+       console.error("Error creating user:", error)
+       toast.error(error instanceof Error ? error.message : "Error al crear usuario")
+     } finally {
+       setIsCreating(false)
+     }
+   }
 
   const handleDeleteUser = async (uid: string) => {
     if (uid === currentUser?.uid) {

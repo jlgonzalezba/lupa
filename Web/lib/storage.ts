@@ -50,18 +50,19 @@ export class StorageService {
     try {
       console.log(`🔥 Subiendo imagen: ${file.name} (${file.size} bytes)`)
 
-      const pathParts = path.split('/')
-      const userId = pathParts[1] || 'anonymous'
-      const recordId = pathParts[2] || 'temp'
+      // Convert file to base64
+      const arrayBuffer = await file.arrayBuffer()
+      const base64String = Buffer.from(arrayBuffer).toString('base64')
 
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('userId', userId)
-      formData.append('recordId', recordId)
+      // Determine folder from path (e.g., "records/userId/recordId" -> "records")
+      const folder = path.split('/')[0] || 'lupa'
 
-      const response = await fetch('/api/upload-image', {
+      // Call Cloud Function
+      const CLOUD_FUNCTIONS_BASE = 'https://us-central1-innergy-a55ba.cloudfunctions.net'
+      const response = await fetch(`${CLOUD_FUNCTIONS_BASE}/upload-image`, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64String, folder })
       })
 
       if (!response.ok) {

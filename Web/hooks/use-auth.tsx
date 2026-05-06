@@ -4,24 +4,21 @@ import React, { useState, useEffect, useContext, createContext, ReactNode } from
 import {
   User,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  updateProfile,
   updatePassword,
-
 } from 'firebase/auth'
 import { 
   doc, 
   getDoc, 
   setDoc, 
-
   updateDoc,
   serverTimestamp 
 } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
+import { createUserFunction, deleteUserFunction } from '@/lib/functions-client'
 import { isAdminEmail } from '@/lib/admins'
 
 type UserRole = 'admin' | 'general'
@@ -164,20 +161,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('No tienes permisos para crear usuarios')
     }
     
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    // Call Cloud Function
+    const result = await createUserFunction({
+      email,
+      password,
+      displayName,
+      createdByUid: user.uid,
+    })
     
-    if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName })
-      
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        email: userCredential.user.email,
-        displayName,
-        role: 'general',
-        createdAt: serverTimestamp(),
-        createdBy: user.uid,
-        mustChangePassword: true,
-      })
-    }
+    return result
   }
 
   const deleteUser = async (uid: string) => {
@@ -185,17 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('No tienes permisos para eliminar usuarios')
     }
 
-    const response = await fetch(`/api/users/${uid}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deletedByUid: user.uid }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al eliminar usuario')
-    }
+    // Call Cloud Function
+    const result = await deleteUserFunction(uid, user.uid)
+    return result
   }
 
   const changePassword = async (newPassword: string) => {
