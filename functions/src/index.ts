@@ -9,13 +9,9 @@ admin.initializeApp();
 const db = admin.firestore();
 const auth = admin.auth();
 
-// CORS configuration
+// CORS configuration - allow any origin for now
 const corsHandler = cors({
-  origin: [
-    'https://lupa-puce.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5000'
-  ],
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
