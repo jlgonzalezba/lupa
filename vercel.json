@@ -1,4 +1,8 @@
 {
+<<<<<<< HEAD
+=======
+  "root": "Web",
+>>>>>>> abff084375965d25001fb7d6fdee0272ac6d8de2
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
