@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { CreateForm } from "@/components/dashboard/create-form"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileText } from "lucide-react"
+
 
 export function DashboardContent() {
   return (

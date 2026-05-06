@@ -18,14 +18,13 @@ export async function GET() {
   
   if (hasHeader && hasEndMarker) {
     try {
-      const crypto = require('crypto')
       const keyContent = privateKey
         .replace('-----BEGIN PRIVATE KEY-----', '')
         .replace('-----END PRIVATE KEY-----', '')
         .replace(/\s/g, '')
       Buffer.from(keyContent, 'base64')
       keyValid = true
-    } catch (e: any) {
+    } catch (e: unknown) {
       keyError = e.message
     }
   }

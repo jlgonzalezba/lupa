@@ -11,14 +11,13 @@ import {
   signInWithPopup,
   updateProfile,
   updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
+
 } from 'firebase/auth'
 import { 
   doc, 
   getDoc, 
   setDoc, 
-  deleteDoc,
+
   updateDoc,
   serverTimestamp 
 } from 'firebase/firestore'
@@ -118,9 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error: unknown) {
       console.error('Error signIn:', error)
-      throw new Error(error.code === 'auth/invalid-credential' 
+      const err = error as { code?: string; message?: string }
+      throw new Error(err.code === 'auth/invalid-credential'
         ? 'Email o contraseña incorrectos'
-        : 'Error al iniciar sesión')
+        : 'Error al iniciar sesión', { cause: error })
     }
   }
 

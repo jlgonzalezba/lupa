@@ -36,7 +36,7 @@ interface UserData {
 }
 
 export function UserManagement() {
-  const { isAdmin, createUserByAdmin, deleteUser, user: currentUser } = useAuth()
+  const { isAdmin, deleteUser, user: currentUser } = useAuth()
   const [users, setUsers] = useState<UserData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)

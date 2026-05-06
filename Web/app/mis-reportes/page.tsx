@@ -68,7 +68,7 @@ export default function MisReportesPage() {
   const loadReports = async () => {
     try {
       const allRecords = await FirestoreService.getAll('records')
-      const userReports = allRecords.filter((r: any) => r.userId === user?.uid)
+      const userReports = allRecords.filter((r: unknown) => (r as any).userId === user?.uid)
       setReports(userReports as Report[])
     } catch (error) {
       console.error('Error loading reports:', error)
