@@ -310,7 +310,7 @@ export default function MisReportesPage() {
               Visualiza la información completa de tu reporte
             </DialogDescription>
           </DialogHeader>
-          <DialogContent className="space-y-6">
+          <div className="space-y-6">
             {viewingReport && (
               <>
                 <div>
@@ -362,7 +362,7 @@ export default function MisReportesPage() {
                 </div>
               </>
             )}
-          </DialogContent>
+          </div>
           <DialogFooter className="flex justify-end pt-4">
             <Button variant="ghost" onClick={() => setViewingReport(null)}>
               Cerrar

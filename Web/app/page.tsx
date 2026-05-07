@@ -1,13 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from "@/hooks/use-auth"
 import { AuthForm } from "@/components/auth-form"
-import { DashboardContent } from "@/components/dashboard/dashboard-content"
-import { PasswordChangeDialog } from "@/components/password-change-dialog"
 import { Loader2 } from "lucide-react"
 
 export default function HomePage() {
   const { user, hydrated } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (hydrated && user) {
+      router.replace('/formularios')
+    }
+  }, [hydrated, user, router])
 
   if (!hydrated) {
     return (
@@ -29,9 +36,11 @@ export default function HomePage() {
   }
 
   return (
-    <>
-      <PasswordChangeDialog />
-      <DashboardContent />
-    </>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Redirigiendo...</p>
+      </div>
+    </div>
   )
 }
