@@ -45,15 +45,26 @@ interface Report {
 }
 
 export default function MisReportesPage() {
-  const { user, hydrated } = useAuth()
+  const { user, hydrated, loading: authLoading } = useAuth()
   const [reports, setReports] = useState<Report[]>([])
-  const [loading, setLoading] = useState(true)
+  const [reportsLoading, setReportsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [filteredReports, setFilteredReports] = useState<Report[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingReport, setViewingReport] = useState<Report | null>(null)
+
+  if (!hydrated || authLoading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <Sidebar />
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     if (hydrated && user) {
@@ -73,7 +84,7 @@ export default function MisReportesPage() {
     } catch (error) {
       console.error('Error loading reports:', error)
     } finally {
-      setLoading(false)
+      setReportsLoading(false)
     }
   }
 
@@ -233,7 +244,7 @@ export default function MisReportesPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {loading ? (
+                {reportsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>

@@ -37,7 +37,14 @@ export async function callFunction<T>(
     throw new Error(errorData.error || `HTTP ${response.status}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  
+  // Extract result from callable function format { result: {...} }
+  if (json.result !== undefined) {
+    return json.result as T;
+  }
+  
+  return json as T;
 }
 
 /**
@@ -48,13 +55,13 @@ export const createUserFunction = (data: {
   password: string;
   displayName: string;
   createdByUid: string;
-}) => callFunction('/users', 'POST', data);
+}) => callFunction('/createUserFunc', 'POST', { data });
 
 /**
  * Delete a user (admin only)
  */
-export const deleteUserFunction = (targetUid: string, deletedByUid: string) => 
-  callFunction(`/users?targetUid=${encodeURIComponent(targetUid)}&deletedByUid=${encodeURIComponent(deletedByUid)}`, 'DELETE');
+export const deleteUserFunction = (targetUid: string, deletedByUid: string) =>
+  callFunction(`/deleteUserFunc?targetUid=${encodeURIComponent(targetUid)}&deletedByUid=${encodeURIComponent(deletedByUid)}`, 'DELETE');
 
 /**
  * Get diagnostic information
@@ -65,4 +72,4 @@ export const diagnosticFunction = () => callFunction('/diagnostic', 'GET');
  * Upload image to Cloudinary
  */
 export const uploadImageFunction = (base64Image: string, folder?: string) =>
-  callFunction('/upload-image', 'POST', { image: base64Image, folder });
+  callFunction('/uploadImage', 'POST', { data: { image: base64Image, folder } });

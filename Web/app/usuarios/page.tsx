@@ -1,16 +1,16 @@
 'use client'
 
+import { UserManagement } from "@/components/dashboard/user-management"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
-import { UserManagement } from "@/components/dashboard/user-management"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2 } from "lucide-react"
 
 export default function UsuariosPage() {
-  const { isAdmin, hydrated } = useAuth()
+  const { isAdmin, hydrated, loading } = useAuth()
 
-  if (!hydrated) {
+  if (!hydrated || loading) {
     return (
       <div className="flex h-screen bg-background">
         <Sidebar />
@@ -40,10 +40,7 @@ export default function UsuariosPage() {
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <ScrollArea
-          className="flex-1"
-          style={{ height: 'calc(100vh - 64px)' }}
-        >
+        <ScrollArea className="flex-1" style={{ height: 'calc(100vh - 64px)' }}>
           <main className="p-6">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>

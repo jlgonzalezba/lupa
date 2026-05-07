@@ -60,9 +60,9 @@ const CATEGORIES = [
 ]
 
 export default function AnaliticasPage() {
-  const { isAdmin, hydrated } = useAuth()
+  const { isAdmin, hydrated, loading } = useAuth()
   const [reports, setReports] = useState<Report[]>([])
-  const [loading, setLoading] = useState(true)
+  const [reportsLoading, setReportsLoading] = useState(true)
   const [searchUser, setSearchUser] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -70,6 +70,25 @@ export default function AnaliticasPage() {
   const [filteredReports, setFilteredReports] = useState<Report[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingReport, setViewingReport] = useState<Report | null>(null)
+
+  if (!hydrated || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     if (hydrated && isAdmin) {
@@ -88,7 +107,7 @@ export default function AnaliticasPage() {
     } catch (error) {
       console.error('Error loading reports:', error)
     } finally {
-      setLoading(false)
+      setReportsLoading(false)
     }
   }
 
@@ -335,7 +354,7 @@ export default function AnaliticasPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {loading ? (
+                {reportsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>

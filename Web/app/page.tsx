@@ -1,20 +1,18 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from "@/hooks/use-auth"
 import { AuthForm } from "@/components/auth-form"
 import { Loader2 } from "lucide-react"
 
 export default function HomePage() {
   const { user, hydrated } = useAuth()
-  const router = useRouter()
 
   useEffect(() => {
     if (hydrated && user) {
-      router.replace('/formularios')
+      window.location.href = '/formularios'
     }
-  }, [hydrated, user, router])
+  }, [hydrated, user])
 
   if (!hydrated) {
     return (

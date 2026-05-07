@@ -12,9 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
 
 export function Header() {
   const { user, role, isAdmin, logout } = useAuth()
+  const router = useRouter()
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U"
@@ -85,7 +87,10 @@ export function Header() {
               <User className="mr-2 h-4 w-4" />
               Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => logout()}>
+            <DropdownMenuItem onClick={async () => {
+              await logout()
+              router.push('/')
+            }}>
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar sesión
             </DropdownMenuItem>
